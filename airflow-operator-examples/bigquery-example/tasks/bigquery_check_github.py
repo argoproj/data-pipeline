@@ -62,7 +62,7 @@ t1 = BigQueryCheckOperator(
     #legacySql
     SELECT table_id
     FROM [githubarchive:day.__TABLES__]
-    WHERE table_id = "20171220"
+    WHERE table_id = "{{ yesterday_ds_nodash }}"
     ''',
     dag=dag)
 
