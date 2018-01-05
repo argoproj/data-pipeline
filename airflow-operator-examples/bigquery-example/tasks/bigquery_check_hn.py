@@ -66,7 +66,7 @@ t1 = BigQueryCheckOperator(
       [bigquery-public-data:hacker_news.full]
     WHERE
     type = 'story'
-    AND STRFTIME_UTC_USEC(timestamp, "%Y%m%d") = "20171220"
+    AND STRFTIME_UTC_USEC(timestamp, "%Y%m%d") = "{{ yesterday_ds_nodash }}"
     LIMIT 1
     ''',
     dag=dag)
