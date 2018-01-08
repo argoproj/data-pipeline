@@ -1,0 +1,150 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: bigquery-data-pipeline-init-
+spec:
+  entrypoint: bigquery-data-pipeline-init
+
+  arguments:
+    parameters:
+    - name: airflow-operator-base-url
+      value: "https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/tasks"
+    - name: airflow-dag-path
+      value: "/usr/local/airflow/airflow/dags"
+    - name: gcp-project
+      value: "gagan-sb"
+    - name: workflow-dag-name
+      value: "bigquery_github_trends_v1"
+    - name: gcp-sa-keyfile-dir
+      value: "/tmp"
+    - name: gcp-sa-keyfile-name
+      value: "gcp-sa-key.json"
+    - name: backfill-end-date
+      value: ""
+    - name: data-set
+      value: "github_trends"
+    - name: backfill-num-days
+      value: 40
+
+  volumes:
+  - name: gcp-sa-secret
+    secret:
+      secretName: bigquery-sa-secret
+      items:
+      - key: gcp-bigquery.json
+        path: "gcp-sa-key.json"
+
+  templates:
+  - name: bigquery-data-pipeline-init
+    steps:
+    - - name: create-bq-dataset
+        template: bq-create-dataset-if-needed
+        arguments:
+          parameters:
+          - name: dataset-name
+            value: "{{workflow.parameters.data-set}}"
+
+    - - name: create-bq-tables
+        template: bq-create-table-if-needed
+        arguments:   
+          parameters: 
+          - name: dataset-name
+            value: "{{workflow.parameters.data-set}}"
+          - name: table-name
+            value: "{{item}}"
+        withItems:
+        - "github_daily_metrics"
+        - "github_agg"
+        - "hackernews_agg"
+        - "hackernews_github_agg"
+
+    - - name: produce-backfill-dates
+        template: date-list
+
+    - - name: github-daily-backfill
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_github_daily.py"
+          - name: run-date
+            value: "{{item}}"
+        withParam: "{{steps.produce-backfill-dates.outputs.result}}"         
+
+  - name: bq-create-dataset-if-needed
+    inputs:
+      parameters:
+      - name: dataset-name
+    container:
+      image: docker.io/google/cloud-sdk
+      command: ["bash", "-x", "-c"]
+      args: ["gcloud auth activate-service-account --key-file {{workflow.parameters.gcp-sa-keyfile-dir}}/{{workflow.parameters.gcp-sa-keyfile-name}}; bq ls {{inputs.parameters.dataset-name}}; RET=$?; if [ ${RET} -ne 0 ]; then bq mk {{inputs.parameters.dataset-name}}; RET=$?; if [ ${RET} -ne 0 ]; then echo 'ERROR: Unable to create dataset'; exit 1; fi; fi;"]
+      volumeMounts:
+      - name: gcp-sa-secret
+        mountPath: "{{workflow.parameters.gcp-sa-keyfile-dir}}"
+        readOnly: true
+      imagePullPolicy: Always
+
+  - name: bq-create-table-if-needed
+    inputs:
+      parameters:
+      - name: table-name
+      - name: dataset-name
+    container:
+      image: docker.io/google/cloud-sdk
+      command: ["bash", "-x", "-c"]
+      args: ["gcloud auth activate-service-account --key-file {{workflow.parameters.gcp-sa-keyfile-dir}}/{{workflow.parameters.gcp-sa-keyfile-name}}; bq ls {{inputs.parameters.dataset-name}}; RET=$?; if [ ${RET} -ne 0 ]; then echo 'ERROR: dataset not found'; exit 1; fi; bq show {{inputs.parameters.dataset-name}}.{{inputs.parameters.table-name}}; RET=$?; if [ ${RET} -ne 0 ]; then bq mk --time_partitioning_type=DAY {{inputs.parameters.dataset-name}}.{{inputs.parameters.table-name}}; RET=$?; if [ ${RET} -ne 0 ]; then echo 'ERROR: Unable to create table {{inputs.parameters.dataset-name}}.{{inputs.parameters.table-name}}'; fi;fi"] 
+      volumeMounts:
+      - name: gcp-sa-secret
+        mountPath: "{{workflow.parameters.gcp-sa-keyfile-dir}}"
+        readOnly: true
+      imagePullPolicy: Always      
+
+  - name: date-list
+    script:
+      image: docker.io/python:slim-stretch
+      command: ["python"]
+      source: |
+        import json
+        import sys
+        from datetime import date, datetime, timedelta
+        def print_dates():
+          end_date_str = "{{workflow.parameters.backfill-end-date}}"
+          if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y%m%d')
+          else:
+            end_date = date.today()
+          out_list = list()
+          for i in range(1, {{workflow.parameters.backfill-num-days}}):
+            out_list.append((end_date - timedelta(days=i)).strftime('%Y%m%d'))
+          json.dump(out_list, sys.stdout)
+        print_dates()
+
+  - name: airflow-operator
+    inputs:
+      parameters:
+      - name: operator-src
+      - name: run-date
+      artifacts:
+      - name: operator
+        path: "{{workflow.parameters.airflow-dag-path}}/{{inputs.parameters.operator-src}}"
+        http:
+          url: "{{workflow.parameters.airflow-operator-base-url}}/{{inputs.parameters.operator-src}}"
+    container:
+      image: docker.io/gaganapplatix/argo-airflow:latest
+      env:
+      - name: GOOGLE_CLOUD_PROJECT
+        value: "{{workflow.parameters.gcp-project}}"
+      - name: AIRFLOW_CONN_GOOGLE_CLOUD_PLATFORM
+        value: "{{workflow.parameters.gcp-sa-keyfile-dir}}/{{workflow.parameters.gcp-sa-keyfile-name}}"
+      - name: START_DATE
+        value: "{{inputs.parameters.run-date}}"
+      - name: DAG_NAME
+        value: "{{workflow.parameters.workflow-dag-name}}"
+      - name: LOAD_EX
+        value: "n"
+      volumeMounts:
+      - name: gcp-sa-secret
+        mountPath: "{{workflow.parameters.gcp-sa-keyfile-dir}}"
+        readOnly: true 
+      imagePullPolicy: Always

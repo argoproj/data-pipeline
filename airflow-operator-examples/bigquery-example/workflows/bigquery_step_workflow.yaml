@@ -1,0 +1,106 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: bigquery-data-pipeline-
+spec:
+  entrypoint: bigquery-data-pipeline
+
+  arguments:
+    parameters:
+    - name: airflow-operator-base-url
+      value: "https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/tasks"
+    - name: airflow-dag-path
+      value: "/usr/local/airflow/airflow/dags"
+    - name: gcp-project
+      value: "gagan-sb"
+    - name: workflow-dag-name
+      value: "bigquery_github_trends_v1"
+    - name: gcp-sa-keyfile-dir
+      value: "/tmp"
+    - name: gcp-sa-keyfile-name
+      value: "gcp-sa-key.json"
+    - name: run-date
+      value: ""
+
+  volumes:
+  - name: gcp-sa-secret
+    secret:
+      secretName: bigquery-sa-secret
+      items:
+      - key: gcp-bigquery.json
+        path: "gcp-sa-key.json"
+
+  templates:
+  - name: bigquery-data-pipeline
+    steps:
+    - - name: check-github-data
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_check_github.py"
+      - name: check-hn-data
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_check_hn.py"
+    - - name: write-github-daily
+        template: airflow-operator
+        arguments:   
+          parameters: 
+          - name: operator-src
+            value: "bigquery_github_daily.py"
+      - name: write-hn-agg
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_hn_agg.py"
+    - - name: write-github-agg
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_github_agg.py"
+    - - name: write-hn-github-agg
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_hn_github_agg.py"
+    - - name: check-hn-github-agg
+        template: airflow-operator
+        arguments:
+          parameters:
+          - name: operator-src
+            value: "bigquery_check_hn_github_agg.py"
+
+  - name: airflow-operator
+    inputs:
+      parameters:
+      - name: operator-src
+      artifacts:
+      - name: operator
+        path: "{{workflow.parameters.airflow-dag-path}}/{{inputs.parameters.operator-src}}"
+        http:
+          url: "{{workflow.parameters.airflow-operator-base-url}}/{{inputs.parameters.operator-src}}"
+    container:
+      image: docker.io/gaganapplatix/argo-airflow:latest
+      env:
+      - name: GOOGLE_CLOUD_PROJECT
+        value: "{{workflow.parameters.gcp-project}}"
+      - name: AIRFLOW_CONN_GOOGLE_CLOUD_PLATFORM
+        value: "{{workflow.parameters.gcp-sa-keyfile-dir}}/{{workflow.parameters.gcp-sa-keyfile-name}}"
+      - name: START_DATE
+        value: "{{workflow.parameters.run-date}}"
+      - name: DAG_NAME
+        value: "{{workflow.parameters.workflow-dag-name}}"
+      - name: LOAD_EX
+        value: "n"
+      volumeMounts:
+      - name: gcp-sa-secret
+        mountPath: "{{workflow.parameters.gcp-sa-keyfile-dir}}"
+        readOnly: true 
+      imagePullPolicy: Always
+
