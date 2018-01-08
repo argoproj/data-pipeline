@@ -63,7 +63,7 @@ t1 = BigQueryCheckOperator(
     SELECT
     partition_id
     FROM
-    [airflow-cloud-public-datasets:github_trends.hackernews_github_agg$__PARTITIONS_SUMMARY__]
+    [github_trends.hackernews_github_agg$__PARTITIONS_SUMMARY__]
     WHERE partition_id = "{{ yesterday_ds_nodash }}"
     ''',
     dag=dag)

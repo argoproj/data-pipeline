@@ -79,7 +79,7 @@ t1 = BigQueryOperator(
     (SELECT
       *
     FROM
-      `airflow-cloud-public-datasets.github_trends.hackernews_agg`
+      `github_trends.hackernews_agg`
       WHERE _PARTITIONTIME BETWEEN TIMESTAMP("{{ yesterday_ds }}") AND TIMESTAMP("{{ yesterday_ds }}")
       )as a
     LEFT JOIN
@@ -94,7 +94,7 @@ t1 = BigQueryOperator(
       forks_last_7_days,
       forks_last_1_day
       FROM
-      `airflow-cloud-public-datasets.github_trends.github_agg`
+      `github_trends.github_agg`
       WHERE _PARTITIONTIME BETWEEN TIMESTAMP("{{ yesterday_ds }}") AND TIMESTAMP("{{ yesterday_ds }}")
       ) as b
     ON a.url = b.url

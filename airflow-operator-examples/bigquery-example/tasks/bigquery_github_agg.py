@@ -81,7 +81,7 @@ t1 = BigQueryOperator(
         AND TIMESTAMP("{{ yesterday_ds }}") ,
         forks, null)) as forks_last_1_day
     FROM
-      `airflow-cloud-public-datasets.github_trends.github_daily_metrics`
+      `github_trends.github_daily_metrics`
     WHERE _PARTITIONTIME BETWEEN TIMESTAMP("{{ macros.ds_add(ds, -27) }}")
     AND TIMESTAMP("{{ yesterday_ds }}")
     GROUP BY
