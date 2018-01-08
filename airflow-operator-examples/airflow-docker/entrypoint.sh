@@ -18,13 +18,14 @@ then
   exit 1
 fi
 
+echo "sd: ${START_DATE}"
+
 DATE_ARGS=""
-if [ -z ${START_DATE+x} ]
+if [[ -z "${START_DATE}" ]]
 then
-  DATE_ARGS="${DATE_ARGS} -s -1"
-else
-  DATE_ARGS="${DATE_ARGS} -s ${START_DATE}"
+  START_DATE="$(date +%Y%m%d)"
 fi
+DATE_ARGS="${DATE_ARGS} -s ${START_DATE}"
 
 airflow backfill ${DATE_ARGS} ${DAG_NAME}
 RET=$?
