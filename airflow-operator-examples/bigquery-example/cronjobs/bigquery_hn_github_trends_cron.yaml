@@ -1,0 +1,19 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: bigquery-hn-github-trend-cron
+spec:
+  schedule: "00 15 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          containers:
+          - name: submit-workflow
+            image: docker.io/argoproj/kubectl:sh-v1.8.3
+            command: ["/bin/sh", "-c"]
+            args: ["wget -O /tmp/bigquery_step_workflow.yaml https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml; kubectl create -f /tmp/bigquery_step_workflow.yaml"]
+            imagePullPolicy: Always
+          restartPolicy: Never
+
