@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: bigquery-hn-github-trend-cron
 spec:
-  schedule: "00 15 * * *"
+  schedule: "30 23 * * *"
   jobTemplate:
     spec:
       backoffLimit: 2
