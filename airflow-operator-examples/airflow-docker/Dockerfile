@@ -1,4 +1,4 @@
-FROM puckel/docker-airflow:latest
+FROM puckel/docker-airflow:1.8.2
 
 USER root
 RUN set -ex \
