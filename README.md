@@ -32,16 +32,16 @@ This example uses workflows for two things:
 ### How to Run the Example:
 
 1. Get access to BigQuery:
-  1. Create a Service Account in Google Cloud with BigQuery Admin Role using the IAM & admin settings in the console
-  2. Download the Key.json file to your computer
+   1. Create a Service Account in Google Cloud with BigQuery Admin Role using the IAM & admin settings in the console
+   2. Download the Key.json file to your computer
 
 2. Create Secret in Kubernetes based on the Key.json file:
-  1. Create Kubernetes secret with the following command
-     ```shell
-     mv Key.json gcp-bigquery.json
-     kubectl create secret bigquery-sa-secret --from-file=gcp-bigquery.json
-     ```
-     This will create a new secret called bigquery-sa-secret with key gcp-bigquery.json and the content of the gcp-bigquery.json as data in your cluster
+   1. Create Kubernetes secret with the following command
+      ```shell
+      mv Key.json gcp-bigquery.json
+      kubectl create secret bigquery-sa-secret --from-file=gcp-bigquery.json
+      ```
+      This will create a new secret called bigquery-sa-secret with key gcp-bigquery.json and the content of the gcp-bigquery.json as data in your cluster
 
 3. Check out example repository:
    ```shell
