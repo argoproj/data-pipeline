@@ -59,9 +59,8 @@ This example uses workflows for two things:
       ```shell
       kubectl apply -f data-pipeline/airflow-operator-examples/bigquery-example/cronjobs/bigquery_hn_github_trends_cron.yaml
       ```
-      If you do the above you need to modify the bigquery_hn_github_trends_cron.yaml to add -p gcp-project="<Name of your google cloud project>" to end of line.
-  
-     in file **data-pipeline/airflow-operator-examples/bigquery-example/cronjobs/bigquery_hn_github_trends_cron.yaml**
+
+     If you do the above you need to modify the bigquery_hn_github_trends_cron.yaml to add -p gcp-project="<Name of your google cloud project>" to end of line in file **data-pipeline/airflow-operator-examples/bigquery-example/cronjobs/bigquery_hn_github_trends_cron.yaml**
 
       CHANGE:
       ```yaml
