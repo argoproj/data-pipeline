@@ -65,45 +65,47 @@ This example uses workflows for two things:
 
       CHANGE:
       ```yaml
-apiVersion: batch/v1beta1
-kind: CronJob
-metadata:
-  name: bigquery-hn-github-trend-cron
-spec:
-  schedule: "30 23 * * *"
-  jobTemplate:
-    spec:
-      backoffLimit: 2
-      template:
-        spec:
-          containers:
-          - name: submit-workflow
-            image: docker.io/argoproj/kubectl:sh-v1.8.3
-            command: ["/bin/sh", "-c"]
-            args: ["wget -O /tmp/bigquery_step_workflow.yaml https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml; kubectl create -f /tmp/bigquery_step_workflow.yaml"]
-            imagePullPolicy: Always
-restartPolicy: Never
+	apiVersion: batch/v1beta1
+	kind: CronJob
+	metadata:
+	  name: bigquery-hn-github-trend-cron
+	spec:
+	  schedule: "30 23 * * *"
+	  jobTemplate:
+	    spec:
+	      backoffLimit: 2
+	      template:
+		spec:
+		  containers:
+		  - name: submit-workflow
+		    image: docker.io/argoproj/kubectl:sh-v1.8.3
+		    command: ["/bin/sh", "-c"]
+		    args: ["wget -O /tmp/bigquery_step_workflow.yaml https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml; kubectl create -f /tmp/bigquery_step_workflow.yaml"]
+		    imagePullPolicy: Always
+	restartPolicy: Never
       ```
+
       TO
+
       ```yaml
-apiVersion: batch/v1beta1
-kind: CronJob
-metadata:
-  name: bigquery-hn-github-trend-cron
-spec:
-  schedule: "30 23 * * *"
-  jobTemplate:
-    spec:
-      backoffLimit: 2
-      template:
-        spec:
-          containers:
-          - name: submit-workflow
-            image: docker.io/argoproj/kubectl:sh-v1.8.3
-            command: ["/bin/sh", "-c"]
-            args: ["wget -O /tmp/bigquery_step_workflow.yaml https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml; kubectl create -f /tmp/bigquery_step_workflow.yaml -p gcp-project='<Name of your google cloud project>'"]
-            imagePullPolicy: Always
-restartPolicy: Never
+	apiVersion: batch/v1beta1
+	kind: CronJob
+	metadata:
+	  name: bigquery-hn-github-trend-cron
+	spec:
+	  schedule: "30 23 * * *"
+	  jobTemplate:
+	    spec:
+	      backoffLimit: 2
+	      template:
+		spec:
+		  containers:
+		  - name: submit-workflow
+		    image: docker.io/argoproj/kubectl:sh-v1.8.3
+		    command: ["/bin/sh", "-c"]
+		    args: ["wget -O /tmp/bigquery_step_workflow.yaml https://raw.githubusercontent.com/argoproj/data-pipeline/master/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml; kubectl create -f /tmp/bigquery_step_workflow.yaml -p gcp-project='<Name of your google cloud project>'"]
+		    imagePullPolicy: Always
+	restartPolicy: Never
       ```
      
    2. Run the workflow manually to fill out for various dates:
