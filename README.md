@@ -112,6 +112,6 @@ This example uses workflows for two things:
       argo submit data-pipeline/airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml -p gcp-project="<Name of your google cloud project>" -p run-date="<Yesterday's date in form YYYYMMDD>"
       ```
 
-   At this point you should have the *hackernews_github_agg* table filled with the data for the day the workflow ran for.
+      The reason to use yesterday's date is that sometimes the hackernews public data set is not updated for the previous day until much later the next day. At this point you should have the *hackernews_github_agg* table filled with the data for the day the workflow ran for.
 
 6. You can plot the table in datastudio in google cloud apps by copying from [my example](https://datastudio.google.com/open/1gCJX4-ZJKOAjq9SJEhXuNgMdMgPGcr0s) and changing the data source you point to your own tables.
