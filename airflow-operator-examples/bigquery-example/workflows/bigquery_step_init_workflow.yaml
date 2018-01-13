@@ -131,7 +131,7 @@ spec:
         http:
           url: "{{workflow.parameters.airflow-operator-base-url}}/{{inputs.parameters.operator-src}}"
     container:
-      image: docker.io/gaganapplatix/argo-airflow:latest
+      image: docker.io/gaganapplatix/argo-airflow:v1.8.2
       env:
       - name: GOOGLE_CLOUD_PROJECT
         value: "{{workflow.parameters.gcp-project}}"
