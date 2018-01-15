@@ -2,7 +2,7 @@
 
 ## Concept:
 
-There are not many open source options to do data pipelines native to modern container-orchestration system like Kubernetes. Argo allows for Kubernetes native workflows. The idea is to use the existing variety of hooks and operators available in Apache-Airflow and use them to run a data pipeline native to Kubernetes (using Kubernetes native primitives and Argo for workflow management. This allows us to use define data-pipelines which are not limited to using Apache-Airflow operators and we can using existing container images to do data operations for which are either not supported in Apache Airflow or are not converted to python in some way. Argo workflows also have the advantage of being able to combine DAG's with non-DAG steps based operations in a single workflow and can launch arbitrary container images to do the operation. Argo workflow DAGs will also allow users to execute arbitrary set of tasks for a given dag with just parameters (and it would execute their dependant tasks as well)
+There are not many open source options to do data pipelines native to modern container-orchestration system like Kubernetes. Argo allows for Kubernetes native workflows. The idea is to use the existing variety of hooks and operators available in Apache-Airflow and use them to run a data pipeline native to Kubernetes (using Kubernetes native primitives and Argo for workflow management). This allows us to define data-pipelines which are not limited to using only Apache-Airflow operators and we can using existing container images to do data operations which are either not supported in Apache Airflow or are not converted to python in some way. Argo workflows also have the advantage of being able to combine DAG's with non-DAG steps based operations in a single workflow and can launch arbitrary container images to do the operation. Argo workflow DAGs will also allow users to execute arbitrary set of tasks for a given dag with just parameters (and it would execute their dependant tasks as well)
 
 ## Architecture:
 
@@ -22,11 +22,11 @@ Assumptions:
 4. You have [kubectl v1.8.x](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and [argo cli](https://github.com/argoproj/argo/blob/master/demo.md) installed on your computer
 5. You have [configured your kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to point to your Kubernetes cluster
 
-We use the example from Google using BigQuery related operators and Google Cloud connections to do [hacker new and github trend](https://cloud.google.com/blog/big-data/2017/07/how-to-aggregate-data-for-bigquery-using-apache-airflow)
+We use the example from Google using BigQuery related operators and Google Cloud connections to do [hacker news and github trend](https://cloud.google.com/blog/big-data/2017/07/how-to-aggregate-data-for-bigquery-using-apache-airflow)
 
 This example uses workflows for two things:
 
-1. To create BigQuery dataset and Tables. Then do Backfill for older dates for github daily table. You can see this in the [Yaml](airflow-operator-examples/bigquery-example/workflows/bigquery_step_init_workflow.yaml)
+1. To create BigQuery dataset and Tables. Then do Backfill for older dates for github daily table. You can see this in the [init Yaml](airflow-operator-examples/bigquery-example/workflows/bigquery_step_init_workflow.yaml)
 2. To run the main workflow which is taken from the Google Example which you can see in the [workflow Yaml](airflow-operator-examples/bigquery-example/workflows/bigquery_step_workflow.yaml)
 
 ### How to Run the Example:
